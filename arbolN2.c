@@ -162,7 +162,7 @@ int eliminar_nodo(arbol *raiz_arbol, void* dato_buscado, func_comparar cmp) {
 
     // Desconectar el nodo antes de liberar su subarbol
     nodo->hermano_der = NULL;
-    liberar_arbol(nodo);
+    liberar_arbol(nodo, free);
     return 1;
 }
 
@@ -510,14 +510,14 @@ int main() {
         preorden(arbol_cargado, imprimir_int);
         printf("\n");
 
-        liberar_arbol(arbol_cargado);
+        liberar_arbol(arbol_cargado, free);
     }
 
     // -------------------------------------------------------
     //  Limpieza
     // -------------------------------------------------------
     imprimir_separador("LIMPIEZA");
-    liberar_arbol(nodo1);
+    liberar_arbol(nodo1, free);
     printf("Memoria liberada correctamente.\n\n");
 
     return 0;
