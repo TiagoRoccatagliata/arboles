@@ -2,16 +2,16 @@
 #include <stdlib.h>
 
 #define ORDEN 4  
-typedef struct nodo_b_malo {
+typedef struct nodo_b {
     int claves[ORDEN - 1];
-    struct nodo_b_malo *hijos[ORDEN];
+    struct nodo_b *hijos[ORDEN];
     int cant_claves;
     int es_hoja;
     //  No hay puntero al padre.
-} nodo_b_malo;
+} nodo_b;
 
-nodo_b_malo* crear_nodo(int es_hoja) {
-    nodo_b_malo *nuevo = (nodo_b_malo*)malloc(sizeof(nodo_b_malo));
+nodo_b* crear_nodo(int es_hoja) {
+    nodo_b *nuevo = (nodo_b*)malloc(sizeof(nodo_b));
     nuevo->cant_claves = 0;
     nuevo->es_hoja = es_hoja;
     for (int i = 0; i < ORDEN; i++) {
@@ -20,8 +20,8 @@ nodo_b_malo* crear_nodo(int es_hoja) {
     return nuevo;
 }
 
-void insertar_ingenuo(nodo_b_malo *raiz, int valor) {
-    nodo_b_malo *actual = raiz;
+void insertar(nodo_b *raiz, int valor) {
+    nodo_b *actual = raiz;
 
     while (actual->es_hoja == 0) {
         int i = 0;
@@ -41,13 +41,13 @@ void insertar_ingenuo(nodo_b_malo *raiz, int valor) {
 }
 
 int main() {
-    nodo_b_malo *raiz = crear_nodo(1);
+    nodo_b *raiz = crear_nodo(1);
 
-    insertar_ingenuo(raiz, 10);
-    insertar_ingenuo(raiz, 20);
-    insertar_ingenuo(raiz, 30);
+    insertar(raiz, 10);
+    insertar(raiz, 20);
+    insertar(raiz, 30);
 
-    insertar_ingenuo(raiz, 40); 
+    insertar(raiz, 40); 
 
     return 0;
 }
