@@ -3,17 +3,14 @@
 #include <string.h>
 
 typedef struct nodo_arbol {
-    void* dato;
+    void* dato; // usamos void para que el arbol sea generico
     struct nodo_arbol* padre;
     struct nodo_arbol* primer_hijo;
     struct nodo_arbol* hermano_der;
 } arbol;
 
-// Puntero a funcion para imprimir el dato generico
 typedef void (*func_imprimir)(void*);
-// Puntero a funcion para comparar datos genericos (retorna 0 si son iguales)
 typedef int (*func_comparar)(void*, void*);
-// Puntero a funcion para serializar el dato a string (para XML)
 typedef char* (*func_a_string)(void*);
 typedef void (*func_liberar_dato)(void*);
 
@@ -41,17 +38,14 @@ void liberar_arbol(arbol *raiz, func_liberar_dato liberar_dato) {
     free(raiz);
 }
 
-// Retorna 1 si el arbol esta vacio (raiz es NULL), 0 en caso contrario
 int arbol_vacio(arbol *raiz) {
     return (raiz == NULL);
 }
 
-// Retorna 1 si el nodo es nulo, 0 en caso contrario
 int nodo_nulo(arbol *nodo) {
     return (nodo == NULL);
 }
 
-// Retorna la raiz del arbol (sube por los padres hasta encontrarla)
 arbol* raiz(arbol *nodo) {
     if (nodo == NULL) return NULL;
     while (nodo->padre != NULL) {
@@ -60,31 +54,26 @@ arbol* raiz(arbol *nodo) {
     return nodo;
 }
 
-// Retorna el padre de un nodo
 arbol* padre(arbol *nodo) {
     if (nodo == NULL) return NULL;
     return nodo->padre;
 }
 
-// Retorna el primer hijo (mas a la izquierda) de un nodo
 arbol* primer_hijo(arbol *nodo) {
     if (nodo == NULL) return NULL;
     return nodo->primer_hijo;
 }
 
-// Retorna el hermano a derecha de un nodo
 arbol* hermano_derecho(arbol *nodo) {
     if (nodo == NULL) return NULL;
     return nodo->hermano_der;
 }
 
-// Retorna el contenido (dato) de un nodo
 void* contenido(arbol *nodo) {
     if (nodo == NULL) return NULL;
     return nodo->dato;
 }
 
-// Agrega un hijo al final de la lista de hijos de un nodo padre
 void agregar_hijo(arbol *nodo_padre, arbol *hijo) {
     if (nodo_padre == NULL || hijo == NULL) return;
 
@@ -101,13 +90,9 @@ void agregar_hijo(arbol *nodo_padre, arbol *hijo) {
     }
 }
 
-// Inserta un nodo como hijo de un nodo cuyo dato coincida con dato_padre.
-// Busca recursivamente en el arbol.
-// Retorna 1 si se inserto correctamente, 0 si no se encontro el padre.
 arbol* buscar_nodo(arbol *raiz_arbol, void* dato_buscado, func_comparar cmp);
 
-int insertar_nodo(arbol *raiz_arbol, void* dato_padre, void* dato_nuevo,
-                  func_comparar cmp) {
+int insertar_nodo(arbol *raiz_arbol, void* dato_padre, void* dato_nuevo, func_comparar cmp) {
     arbol *nodo_padre = buscar_nodo(raiz_arbol, dato_padre, cmp);
     if (nodo_padre == NULL) return 0;
 
@@ -118,7 +103,6 @@ int insertar_nodo(arbol *raiz_arbol, void* dato_padre, void* dato_nuevo,
     return 1;
 }
 
-// Busca un nodo cuyo dato coincida segun la funcion de comparacion
 arbol* buscar_nodo(arbol *raiz_arbol, void* dato_buscado, func_comparar cmp) {
     if (raiz_arbol == NULL) return NULL;
 
@@ -126,31 +110,23 @@ arbol* buscar_nodo(arbol *raiz_arbol, void* dato_buscado, func_comparar cmp) {
         return raiz_arbol;
     }
 
-    // Buscar en los hijos
     arbol *resultado = buscar_nodo(raiz_arbol->primer_hijo, dato_buscado, cmp);
     if (resultado != NULL) return resultado;
 
-    // Buscar en los hermanos
     return buscar_nodo(raiz_arbol->hermano_der, dato_buscado, cmp);
 }
 
-// Elimina un nodo y todo su subarbol.
-// Retorna 1 si se elimino, 0 si no se encontro.
-// No se puede eliminar la raiz con esta funcion.
 int eliminar_nodo(arbol *raiz_arbol, void* dato_buscado, func_comparar cmp) {
     arbol *nodo = buscar_nodo(raiz_arbol, dato_buscado, cmp);
     if (nodo == NULL || nodo->padre == NULL) {
-        // No encontrado o es la raiz
         return 0;
     }
 
     arbol *papa = nodo->padre;
 
-    // Caso 1: el nodo es el primer hijo del padre
     if (papa->primer_hijo == nodo) {
         papa->primer_hijo = nodo->hermano_der;
     } else {
-        // Caso 2: el nodo esta en la lista de hermanos
         arbol *aux = papa->primer_hijo;
         while (aux != NULL && aux->hermano_der != nodo) {
             aux = aux->hermano_der;
@@ -160,13 +136,11 @@ int eliminar_nodo(arbol *raiz_arbol, void* dato_buscado, func_comparar cmp) {
         }
     }
 
-    // Desconectar el nodo antes de liberar su subarbol
     nodo->hermano_der = NULL;
     liberar_arbol(nodo, free);
     return 1;
 }
 
-// PREORDEN: raiz -> hijos (de izquierda a derecha)
 void preorden(arbol *nodo, func_imprimir imprimir) {
     if (nodo == NULL) return;
 
@@ -179,21 +153,15 @@ void preorden(arbol *nodo, func_imprimir imprimir) {
     }
 }
 
-// INORDEN: primer hijo -> raiz -> resto de hijos
-// (En un arbol N-ario se visita el primer hijo, luego la raiz,
-//  y luego el resto de los hijos)
 void inorden(arbol *nodo, func_imprimir imprimir) {
     if (nodo == NULL) return;
 
-    // Recorrer el primer hijo
     if (nodo->primer_hijo != NULL) {
         inorden(nodo->primer_hijo, imprimir);
     }
 
-    // Visitar la raiz
     imprimir(nodo->dato);
 
-    // Recorrer el resto de los hijos
     if (nodo->primer_hijo != NULL) {
         arbol *hijo = nodo->primer_hijo->hermano_der;
         while (hijo != NULL) {
@@ -203,7 +171,6 @@ void inorden(arbol *nodo, func_imprimir imprimir) {
     }
 }
 
-// POSTORDEN: hijos (de izquierda a derecha) -> raiz
 void postorden(arbol *nodo, func_imprimir imprimir) {
     if (nodo == NULL) return;
 
@@ -217,20 +184,16 @@ void postorden(arbol *nodo, func_imprimir imprimir) {
 }
 
 
-// Escribe el arbol en formato XML de forma recursiva
 static void escribir_xml_recursivo(FILE *archivo, arbol *nodo, func_a_string a_string, int nivel) {
     if (nodo == NULL) return;
 
-    // Indentacion
     for (int i = 0; i < nivel; i++) fprintf(archivo, "  ");
 
     char *str_dato = a_string(nodo->dato);
 
     if (nodo->primer_hijo == NULL) {
-        // Nodo hoja
         fprintf(archivo, "<nodo dato=\"%s\"/>\n", str_dato);
     } else {
-        // Nodo con hijos
         fprintf(archivo, "<nodo dato=\"%s\">\n", str_dato);
 
         arbol *hijo = nodo->primer_hijo;
@@ -246,9 +209,7 @@ static void escribir_xml_recursivo(FILE *archivo, arbol *nodo, func_a_string a_s
     free(str_dato);
 }
 
-// Guarda el arbol completo en un archivo XML
-int guardar_xml(arbol *raiz_arbol, const char *nombre_archivo,
-                func_a_string a_string) {
+int guardar_xml(arbol *raiz_arbol, const char *nombre_archivo, func_a_string a_string) {
     if (raiz_arbol == NULL || nombre_archivo == NULL) return 0;
 
     FILE *archivo = fopen(nombre_archivo, "w");
@@ -268,8 +229,6 @@ int guardar_xml(arbol *raiz_arbol, const char *nombre_archivo,
     return 1;
 }
 
-// Lee un arbol desde un archivo XML (parser simplificado)
-// Formato esperado: <nodo dato="valor"> ... </nodo> o <nodo dato="valor"/>
 static char* extraer_atributo_dato(const char *linea) {
     const char *inicio = strstr(linea, "dato=\"");
     if (inicio == NULL) return NULL;
@@ -285,8 +244,6 @@ static char* extraer_atributo_dato(const char *linea) {
     return valor;
 }
 
-// Funcion auxiliar para cargar el arbol. Recibe un puntero a funcion que
-// convierte un string al tipo de dato deseado.
 typedef void* (*func_desde_string)(const char*);
 
 arbol* cargar_xml(const char *nombre_archivo, func_desde_string desde_string) {
@@ -297,20 +254,17 @@ arbol* cargar_xml(const char *nombre_archivo, func_desde_string desde_string) {
         return NULL;
     }
 
-    // Pila para mantener los nodos padres durante el parseo
     arbol *pila[256];
     int tope = -1;
     arbol *raiz_arbol = NULL;
 
     char linea[1024];
     while (fgets(linea, sizeof(linea), archivo) != NULL) {
-        // Ignorar la declaracion XML y las etiquetas <arbol>
         if (strstr(linea, "<?xml") || strstr(linea, "<arbol") ||
             strstr(linea, "</arbol")) {
             continue;
         }
 
-        // Nodo hoja: <nodo dato="..."/>
         if (strstr(linea, "/>") != NULL) {
             char *valor = extraer_atributo_dato(linea);
             if (valor != NULL) {
@@ -325,7 +279,6 @@ arbol* cargar_xml(const char *nombre_archivo, func_desde_string desde_string) {
                 }
             }
         }
-        // Nodo con hijos (apertura): <nodo dato="...">
         else if (strstr(linea, "<nodo") != NULL && strstr(linea, "</nodo") == NULL) {
             char *valor = extraer_atributo_dato(linea);
             if (valor != NULL) {
@@ -342,7 +295,6 @@ arbol* cargar_xml(const char *nombre_archivo, func_desde_string desde_string) {
                 pila[++tope] = nuevo;
             }
         }
-        // Cierre de nodo: </nodo>
         else if (strstr(linea, "</nodo") != NULL) {
             if (tope >= 0) tope--;
         }
@@ -374,7 +326,6 @@ void* int_desde_string(const char* str) {
     return valor;
 }
 
-// Helper para crear un int en el heap
 int* nuevo_int(int valor) {
     int *p = (int*)malloc(sizeof(int));
     *p = valor;
@@ -384,9 +335,7 @@ int* nuevo_int(int valor) {
 
 void imprimir_separador(const char *titulo) {
     printf("\n");
-    printf("----------------------------------------------\n");
     printf("  %s\n", titulo);
-    printf("----------------------------------------------\n");
 }
 
 int main() {
@@ -437,9 +386,6 @@ int main() {
 
     printf("Contenido de nodo 4:          %d\n", *(int*)contenido(nodo4));
 
-    // -------------------------------------------------------
-    //  Recorridos
-    // -------------------------------------------------------
     imprimir_separador("RECORRIDOS");
 
     printf("Preorden:   ");
@@ -454,9 +400,6 @@ int main() {
     postorden(nodo1, imprimir_int);
     printf("\n");
 
-    // -------------------------------------------------------
-    //  Insercion por busqueda
-    // -------------------------------------------------------
     imprimir_separador("INSERCION");
 
     int val_padre = 3;
@@ -467,9 +410,6 @@ int main() {
     preorden(nodo1, imprimir_int);
     printf("\n");
 
-    // -------------------------------------------------------
-    //  Eliminacion
-    // -------------------------------------------------------
     imprimir_separador("ELIMINACION");
 
     int val_eliminar = 4;
@@ -480,14 +420,10 @@ int main() {
     preorden(nodo1, imprimir_int);
     printf("\n");
 
-    // -------------------------------------------------------
-    //  Persistencia XML: guardar
-    // -------------------------------------------------------
     imprimir_separador("PERSISTENCIA XML - GUARDAR");
 
     guardar_xml(nodo1, "arbol.xml", int_a_string);
 
-    // Mostrar el contenido del archivo
     printf("\nContenido de arbol.xml:\n\n");
     FILE *f = fopen("arbol.xml", "r");
     if (f) {
@@ -498,9 +434,6 @@ int main() {
         fclose(f);
     }
 
-    // -------------------------------------------------------
-    //  Persistencia XML: cargar
-    // -------------------------------------------------------
     imprimir_separador("PERSISTENCIA XML - CARGAR");
 
     arbol *arbol_cargado = cargar_xml("arbol.xml", int_desde_string);
@@ -513,9 +446,6 @@ int main() {
         liberar_arbol(arbol_cargado, free);
     }
 
-    // -------------------------------------------------------
-    //  Limpieza
-    // -------------------------------------------------------
     imprimir_separador("LIMPIEZA");
     liberar_arbol(nodo1, free);
     printf("Memoria liberada correctamente.\n\n");
